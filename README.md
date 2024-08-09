@@ -2,15 +2,22 @@
 
 ## Introduction
 
-This repository demonstrates how to implement RecBole's Sequential Models as an API, focusing on production-ready implementations. While RecBole excels in experimental settings, it lacks comprehensive documentation for production use. This guide bridges that gap, offering insights into API implementation for Sequential Models like SHAN or SINE.
+This guide demonstrates how to adapt RecBole's Sequential Models for production use through API implementation. While RecBole excels in experimental settings, it lacks comprehensive documentation for production deployment. We bridge this gap by offering insights and code examples for implementing Sequential Models like SHAN or SINE as production-ready APIs.
 
 ## Background
 
-Sequential Models in RecBole, such as SHAN or SINE, fundamentally require only item history for predictions, not user IDs. However, RecBole's `full_sort_topk` function necessitates `uid_series` as an argument, introducing unnecessary complexity for API implementation.
+Sequential Models in RecBole, such as SHAN or SINE, fundamentally require only item history for predictions, not user IDs. However, RecBole's built-in functions are designed with experimentation in mind, introducing unnecessary complexity for API implementation in production environments.
 
 ## Implementation Overview
 
-Our implementation bypasses RecBole's `full_sort_topk` function, instead directly utilizing the model's `full_sort_predict` method. This approach allows us to make predictions using only item history, enhancing flexibility and efficiency in API contexts.
+This approach bypasses RecBole's full_sort_topk function, instead directly utilizing the model's full_sort_predict method. This allows us to make predictions using only item history, enhancing flexibility and efficiency in API contexts.
+
+## Key Steps for Production Implementation
+1. **Model Loading**: Efficiently load the trained model without unnecessary data dependencies.
+2. **Data Preparation**: Prepare input data in the format required by the model.
+3. **Prediction**: Use the model to generate predictions based on item history.
+4. **Result Processing**: Convert internal IDs to external IDs for meaningful output.
+
 
 # Implementing RecBole: Sequential Model as an API #Python
 
@@ -169,6 +176,8 @@ def load_model(model_file: str, dataset_file: str) -> Tuple[{Your Model Class}, 
     model = get_model(config["model"])(config, dataset).to(config["device"])
     model.load_state_dict(checkpoint["state_dict"])
     model.load_other_parameter(checkpoint.get("other_parameter"))
+    # Set model to evaluation mode
+    model.eval()
     return model, dataset
 ```
 
@@ -257,10 +266,13 @@ def sine_user_to_item(item_history: ItemHistory):
             "item_length": torch.tensor([item_length]),
         }
     )
-    scores = model.full_sort_predict(input_interaction.to(model.device))
-    scores = scores.view(-1, dataset.item_num)
-    scores[:, 0] = -np.inf  # pad item score -> -inf
-    topk_score, topk_iid_list = torch.topk(scores, item_history_dict["topk"])
+
+    # Use torch.no_grad() for inference
+    with torch.no_grad():
+        scores = model.full_sort_predict(input_interaction.to(model.device))
+        scores = scores.view(-1, dataset.item_num)
+        scores[:, 0] = -np.inf  # Set pad item score to -inf
+        topk_score, topk_iid_list = torch.topk(scores, item_history.topk)
 
     predicted_score_list = topk_score.tolist()[0]
     predicted_item_list = dataset.id2token(

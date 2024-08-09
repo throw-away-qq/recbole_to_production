@@ -1,7 +1,7 @@
 # RecBole: Implementing Sequential Models as API
 
 ## Introduction
-
+Recently, I've been constantly working with RecBole (a tool that allows you to try many recommendation models) as mentioned in this article. It's fun to discover various things by applying different models to different data. Now, while RecBole is primarily designed for experimentation, it doesn't have extensive documentation for production use. 
 This guide demonstrates how to adapt RecBole's Sequential Models for production use through API implementation. While RecBole excels in experimental settings, it lacks comprehensive documentation for production deployment. We bridge this gap by offering insights and code examples for implementing Sequential Models like SHAN or SINE as production-ready APIs.
 
 ## Background
@@ -19,13 +19,7 @@ This approach bypasses RecBole's full_sort_topk function, instead directly utili
 4. **Result Processing**: Convert internal IDs to external IDs for meaningful output.
 
 
-# Implementing RecBole: Sequential Model as an API #Python
 
-Hello everyone!
-
-Recently, I've been constantly working with RecBole (a tool that allows you to try many recommendation models) as mentioned in this article. It's fun to discover various things by applying different models to different data.
-
-Now, while RecBole is primarily designed for experimentation, it doesn't have extensive documentation for production use. In this article, I'll write about one such application: API implementation.
 
 ## Prerequisite
 

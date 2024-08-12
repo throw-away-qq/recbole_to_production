@@ -1,15 +1,16 @@
 # RecBole: Implementing Sequential Models as API
 
 ## Introduction
-Recently, I've been constantly working with RecBole (a tool that allows you to try many recommendation models) as mentioned in this article. It's fun to discover various things by applying different models to different data. Now, while RecBole is primarily designed for experimentation, it doesn't have extensive documentation for production use. 
+Recently, I've been constantly working with RecBole (a tool that allows you to try many recommendation models) as mentioned in this article. Now, while RecBole is primarily designed for experimentation, it doesn't have extensive documentation for production use. 
 This guide demonstrates how to adapt RecBole's Sequential Models for production use through API implementation. While RecBole excels in experimental settings, it lacks comprehensive documentation for production deployment. We bridge this gap by offering insights and code examples for implementing Sequential Models like SHAN or SINE as production-ready APIs.
 
 ## Background
 
-Sequential Models in RecBole, such as SHAN or SINE, fundamentally require only item history for predictions, not user IDs. However, RecBole's built-in functions are designed with experimentation in mind, introducing unnecessary complexity for API implementation in production environments.
+Sequential Models in RecBole, such as SHAN or SINE, fundamentally require only item history for predictions, rather than user IDs.. However, RecBole's built-in functions are designed with experimentation in mind, introducing unnecessary complexity for API implementation in production environments.
 
 ## Implementation Overview
 
+The full_sort_topk function is RecBole's built-in method for generating top-k recommendations, but it's not ideal for our API use case.
 This approach bypasses RecBole's full_sort_topk function, instead directly utilizing the model's full_sort_predict method. This allows us to make predictions using only item history, enhancing flexibility and efficiency in API contexts.
 
 ## Key Steps for Production Implementation
@@ -81,6 +82,7 @@ item_sequence = ["item1", "item2", "item3"]
 item_length = len(item_sequence)
 pad_length = 50  # pre-defined by recbole
 
+# Convert item strings to internal IDs and pad the sequence
 padded_item_sequence = torch.nn.functional.pad(
     torch.tensor(dataset.token2id(dataset.iid_field, item_sequence)),
     (0, pad_length - item_length),
@@ -282,7 +284,7 @@ def sine_user_to_item(item_history: ItemHistory):
 ```
 
 While RecBole's main purpose is for experimentation, looking into its internals reveals that it's neatly organized and what it's doing isn't all that complex. So, if you look at the contents, it's pretty easy to understand how to do what you want to do.
-So, this was content that required looking at and tweaking the internal implementation when trying to do something that wasn't quite worth submitting a PR to the main project.
+Remember to consider performance optimization, error handling, and thorough testing when deploying these models in production environments
 
 I hope this is helpful to someone.
 
